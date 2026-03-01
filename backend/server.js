@@ -34,7 +34,7 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -187,9 +187,18 @@ AppDataSource.initialize().then(async () => {
         }
     });
 
+    // Serve frontend static files in production
+    const path = require('path');
+    const frontendPath = path.join(__dirname, '../frontend/dist');
+    app.use(express.static(frontendPath));
+
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(frontendPath, 'index.html'));
+    });
+
     app.listen(port, () => {
         console.log(`Server running on http://localhost:${port}`);
-        console.log(`Swagger docs available at http://localhost:${port}/api-docs`);
+        console.log(`Swagger docs available at http://localhost:${port}/docs`);
     });
 
 }).catch((error) => console.log("TypeORM connection error: ", error));
