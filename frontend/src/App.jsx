@@ -19,7 +19,6 @@ function App() {
   const [sessionId, setSessionId] = useState(localStorage.getItem('chatSessionId') || '');
   const scrollRef = useRef(null);
 
-  // Fetch chat history on load if session ID exists
   useEffect(() => {
     if (sessionId) {
       fetch(`/api/history?sessionId=${sessionId}`)
@@ -38,7 +37,6 @@ function App() {
     }
   }, [sessionId]);
 
-  // Auto-scroll to bottom of messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -160,9 +158,7 @@ function App() {
       <Layout style={{ background: '#ffffff', marginLeft: 85 }}>
         <Content className="flex flex-col h-screen bg-white">
           
-          {/* Header Area */}
           <div className="flex-none px-12 pt-8">
-            {/* Logo image linking to homepage */}
             <a href="/" className="block mb-6 mt-1 w-max">
               <img 
                 src="https://www.template.net/assets/icons/new-logo.svg" 
@@ -180,7 +176,6 @@ function App() {
             </Button>
           </div>
           
-          {/* Main Content Area - pushes Chat Box to bottom */}
           <div className="flex-grow hide-scrollbar overflow-y-auto px-12 pb-6" ref={scrollRef}>
             <div className="max-w-[1000px] mx-auto w-full flex flex-col gap-6 pt-4">
               {messages.map((msg) => (
@@ -215,7 +210,6 @@ function App() {
             </div>
           </div>
 
-          {/* Chat Input Area at the bottom */}
           <div className="flex-none px-12 pb-10 w-full pt-2">
             <div className="max-w-[1000px] mx-auto w-full">
               <Sender 
