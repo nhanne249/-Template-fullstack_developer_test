@@ -46,6 +46,6 @@ Mở 2 terminal song song tại thư mục gốc của project để chạy cài
 
 Ứng dụng hiện đã được deploy và có thể trải nghiệm trực tiếp thông qua đường dẫn sau:
 
-🔗 **Link Production:** [Đang cập nhật - Vui lòng chèn link production của bạn tại đây]
+🔗 **Link Production:** https://prod--template--yg5vlr47gxgt.code.run
 
 > **Lưu ý:** Xin lưu ý cần có **GEMINI_API_KEY** tại file env backend.
