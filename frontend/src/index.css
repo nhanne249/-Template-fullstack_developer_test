@@ -1,1 +1,50 @@
+@layer theme, base, antd, components, utilities;
 @import "tailwindcss";
+
+/* Custom Menu Item Styles for Sidebar to stack Icon above Text */
+.custom-menu-item {
+  height: auto !important;
+  padding: 8px 0 !important;
+  margin-block: 4px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: normal !important;
+}
+
+.custom-menu-item.ant-menu-item-selected {
+  background-color: transparent !important;
+}
+
+.custom-menu-item.ant-menu-item-selected .text-gray-600 {
+  color: #1f2937 !important; /* Make icon darker when selected */
+}
+
+.custom-menu-item.ant-menu-item-selected .text-gray-500 {
+  color: #111827 !important; /* Make text darker when selected */
+  font-weight: 500 !important;
+}
+
+/* Hide default ant menu item title wrap to allow flex column */
+.custom-menu-item .ant-menu-title-content {
+  margin-inline-start: 0 !important;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.ant-menu-light .ant-menu-item-selected::after {
+  display: none !important; /* Remove the right blue border line from antd */
+}
+
+/* Hide scrollbar for sidebar */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* End of index.css */
