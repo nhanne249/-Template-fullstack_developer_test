@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Layout, Menu, Button } from 'antd';
-import { Sender, Bubble } from '@ant-design/x';
-import { LeftOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
+import { Layout, Menu, Button, Badge, Dropdown, Flex } from 'antd';
+import { Sender, Bubble, Attachments } from '@ant-design/x';
+import { LeftOutlined, PlusOutlined, UserOutlined, LinkOutlined, CloudUploadOutlined, UploadOutlined } from '@ant-design/icons';
 import './App.css';
 
 const { Sider, Content } = Layout;
@@ -19,6 +19,30 @@ function App() {
   const [sessionId, setSessionId] = useState(localStorage.getItem('chatSessionId') || '');
   const scrollRef = useRef(null);
 
+  const [openAttachments, setOpenAttachments] = useState(false);
+  const [items, setItems] = useState([]);
+  const senderRef = useRef(null);
+  const attachmentsRef = useRef(null);
+  const MAX_COUNT = 5;
+
+  useEffect(() => {
+    return () => {
+      items.forEach(item => {
+        if (item.url?.startsWith('blob:')) {
+          URL.revokeObjectURL(item.url);
+        }
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    if (items.length > 0) {
+      setOpenAttachments(true);
+    } else {
+      setOpenAttachments(false);
+    }
+  }, [items.length]);
+
   useEffect(() => {
     if (sessionId) {
       fetch(`/api/history?sessionId=${sessionId}`)
@@ -33,7 +57,7 @@ function App() {
             setMessages(formattedHistory);
           }
         })
-        .catch(err => console.error("Failed to fetch history:", err));
+        .catch(err => console.error( err));
     }
   }, [sessionId]);
 
@@ -44,17 +68,40 @@ function App() {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!inputValue.trim() || isGenerating) return;
+    if ((!inputValue.trim() && items.length === 0) || isGenerating) return;
+
+    const hasFiles = items.length > 0;
+    let content = inputValue;
+    if (hasFiles) {
+      const fileNames = items.map(item => item.name).join(', ');
+      content = inputValue + (inputValue ? '\n' : '') + `[Attachments: ${fileNames}]`;
+    }
 
     const userMessage = {
       key: Date.now(),
       role: 'user',
-      content: inputValue,
+      content: content.trim() || 'Mock File',
     };
     
     setMessages((prev) => [...prev, userMessage]);
+    
     setInputValue('');
+    setItems([]);
+    setOpenAttachments(false);
     setIsGenerating(true);
+
+    if (hasFiles) {
+        setTimeout(() => {
+            const aiMessage = {
+                key: Date.now() + 1,
+                role: 'ai',
+                content: "mock file",
+            };
+            setMessages((prev) => [...prev, aiMessage]);
+            setIsGenerating(false);
+        }, 1000);
+        return;
+    }
 
     try {
       const response = await fetch('/api/chat', {
@@ -81,7 +128,7 @@ function App() {
       };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
-      console.error("Chat error:", error);
+      console.error(error);
       const errorMessage = {
         key: Date.now() + 1,
         role: 'ai',
@@ -91,6 +138,88 @@ function App() {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const senderHeader = (
+    <Sender.Header
+      closable={false}
+      forceRender
+      title="Attachments"
+      open={openAttachments}
+      onOpenChange={setOpenAttachments}
+      styles={{ content: { padding: 0 } }}
+    >
+      <Attachments
+        ref={attachmentsRef}
+        multiple
+        maxCount={MAX_COUNT}
+        beforeUpload={() => false}
+        items={items}
+        onChange={({ file, fileList }) => {
+          const updatedFileList = fileList.map(item => {
+            if (item.uid === file.uid && file.status !== 'removed' && item.originFileObj) {
+              if (item.url?.startsWith('blob:')) {
+                URL.revokeObjectURL(item.url);
+              }
+              return {
+                ...item,
+                url: URL.createObjectURL(item.originFileObj),
+              };
+            }
+            return item;
+          });
+          setItems(updatedFileList);
+        }}
+        placeholder={type =>
+          type === 'drop'
+            ? { title: 'Drop file here' }
+            : {
+                icon: <CloudUploadOutlined />,
+                title: 'Upload files',
+                description: 'Click or drag files to this area to upload',
+              }
+        }
+        getDropContainer={() => senderRef.current?.nativeElement}
+      />
+    </Sender.Header>
+  );
+
+  const acceptItem = [
+    {
+      key: 'files',
+      label: (
+        <div className="flex items-center gap-3 p-1">
+          <div className="bg-gray-50 p-2 rounded-full flex items-center justify-center border border-gray-100">
+            <UploadOutlined className="text-[17px] text-gray-700 font-bold" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-semibold text-gray-800 text-[14px]">Upload files</span>
+            <span className="text-xs text-gray-500 font-medium">Doc, docx, pdf, txt, xlsx, pptx, pages, key and more</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'image',
+      label: (
+        <div className="flex items-center gap-3 p-1 mt-1">
+          <div className="bg-gray-50 p-2 rounded-full flex items-center justify-center border border-gray-100">
+            <UploadOutlined className="text-[17px] text-gray-700 font-bold" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-semibold text-gray-800 text-[14px]">Upload photos</span>
+            <span className="text-xs text-gray-500 font-medium">Png, jpg, jpeg, tif, webp, tiff and more</span>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
+  const selectFile = ({ key }) => {
+    attachmentsRef.current?.select({
+      accept: key === 'image' ? '.png,.jpg,.jpeg,.tif,.webp,.tiff' : '.doc,.docx,.pdf,.txt,.xlsx,.pptx,.pages,.key',
+      multiple: true,
+    });
   };
 
   const getMenuItem = (key, Icon, text, isUpgrade = false) => ({
@@ -213,6 +342,8 @@ function App() {
           <div className="flex-none px-12 pb-10 w-full pt-2">
             <div className="max-w-[1000px] mx-auto w-full">
               <Sender 
+                ref={senderRef}
+                header={senderHeader}
                 value={inputValue}
                 onChange={setInputValue}
                 onSubmit={handleSend}
@@ -225,31 +356,31 @@ function App() {
                   const { SendButton } = info.components;
                   return (
                     <div className="flex justify-between items-center w-full pt-2 mt-1">
-                      <Button 
-                        type="text" 
-                        icon={<PlusOutlined className="text-gray-600 text-[22px]" />} 
-                        className="hover:bg-gray-100 flex items-center justify-center w-8 h-8 p-0" 
-                        onClick={() => {
-                          const uploadInput = document.createElement('input');
-                          uploadInput.type = 'file';
-                          uploadInput.multiple = true;
-                          uploadInput.click();
-                        }}
-                      />
+                      <Badge dot={items.length > 0 && !openAttachments}>
+                        <Dropdown
+                          trigger={['click']}
+                          menu={{ items: acceptItem, onClick: selectFile }}
+                          placement="top"
+                          overlayStyle={{ minWidth: '340px', padding: '6px', borderRadius: '12px' }}
+                        >
+                          <Button disabled={items.length >= MAX_COUNT} type="text" icon={<PlusOutlined className="text-gray-600 text-[22px]" />} className="hover:bg-gray-100 flex items-center justify-center w-8 h-8 p-0" />
+                        </Dropdown>
+                      </Badge>
                       <SendButton 
                         type="primary" 
                         shape="round" 
-                        disabled={isGenerating || !inputValue.trim()}
-                        className={`${(isGenerating || !inputValue.trim()) ? 'bg-gray-200 text-gray-400' : 'bg-[#2a00ff] hover:bg-blue-800 text-white'} font-semibold border-none shadow-none text-[13px] px-5 h-[36px] flex items-center justify-center tracking-wide transition-colors`}
+                        disabled={isGenerating || (!inputValue.trim() && items.length === 0)}
+                        className={`${(isGenerating || (!inputValue.trim() && items.length === 0)) ? 'bg-gray-200 text-gray-400' : 'bg-[#2a00ff] hover:bg-blue-800 text-white'} font-semibold border-none shadow-none text-[13px] px-5 h-[36px] flex items-center justify-center tracking-wide transition-colors`}
                         style={{ borderRadius: '18px' }}
                         icon={null}
                       >
-                        <span className={`mr-1.5 ${isGenerating || !inputValue.trim() ? 'text-gray-400' : 'text-white'} text-[15px]`}>✨</span> {isGenerating ? 'Generating...' : 'Generate Free'}
+                        <span className={`mr-1.5 ${isGenerating || (!inputValue.trim() && items.length === 0) ? 'text-gray-400' : 'text-white'} text-[15px]`}>✨</span> {isGenerating ? 'Generating...' : 'Generate Free'}
                       </SendButton>
                     </div>
                   );
                 }}
               />
+
             </div>
           </div>
           

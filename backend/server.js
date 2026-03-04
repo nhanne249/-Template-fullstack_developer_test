@@ -39,7 +39,6 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 AppDataSource.initialize().then(async () => {
-    console.log("Database connected via TypeORM");
     const messageRepo = AppDataSource.getRepository(MessageEntity);
 
     /**
@@ -125,7 +124,7 @@ AppDataSource.initialize().then(async () => {
 
             res.json({ sessionId, role: 'model', content: responseText });
         } catch (error) {
-            console.error('Gemini/DB API Error:', error);
+            console.error(error);
             res.status(500).json({ error: 'Failed to process chat message' });
         }
     });
@@ -182,12 +181,11 @@ AppDataSource.initialize().then(async () => {
             });
             res.json(history);
         } catch (error) {
-            console.error('Database Error:', error);
+            console.error(error);
             res.status(500).json({ error: 'Failed to fetch chat history' });
         }
     });
 
-    // Serve frontend static files in production
     const path = require('path');
     const frontendPath = path.join(__dirname, '../frontend/dist');
     app.use(express.static(frontendPath));
@@ -197,8 +195,7 @@ AppDataSource.initialize().then(async () => {
     });
 
     app.listen(port, () => {
-        console.log(`Server running on http://localhost:${port}`);
-        console.log(`Swagger docs available at http://localhost:${port}/docs`);
+        console.log(`Docs: http://localhost:${port}/docs`);
     });
 
-}).catch((error) => console.log("TypeORM connection error: ", error));
+}).catch((error) => console.log(error));
