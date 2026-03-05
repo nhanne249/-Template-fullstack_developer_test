@@ -127,6 +127,15 @@ function App() {
     }
   };
 
+  const handleClearChat = () => {
+    setMessages([]);
+    setSessionId('');
+    localStorage.removeItem('chatSessionId');
+    setInputValue('');
+    setItems([]);
+    setOpenAttachments(false);
+  };
+
   const senderHeader = (
     <Sender.Header
       closable={false}
@@ -287,6 +296,7 @@ function App() {
               icon={<LeftOutlined className="text-[11px]" />} 
               shape="round" 
               className="px-5 text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center font-medium h-9 shadow-sm"
+              onClick={handleClearChat}
             >
               Back
             </Button>
