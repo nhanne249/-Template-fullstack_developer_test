@@ -90,26 +90,13 @@ function App() {
     setOpenAttachments(false);
     setIsGenerating(true);
 
-    if (hasFiles) {
-        setTimeout(() => {
-            const aiMessage = {
-                key: Date.now() + 1,
-                role: 'ai',
-                content: "mock file",
-            };
-            setMessages((prev) => [...prev, aiMessage]);
-            setIsGenerating(false);
-        }, 1000);
-        return;
-    }
-
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: userMessage.content, sessionId: sessionId || undefined }),
+        body: JSON.stringify({ message: userMessage.content, sessionId: sessionId || undefined, hasFiles }),
       });
 
       if (!response.ok) throw new Error("API response error");

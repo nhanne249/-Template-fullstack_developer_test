@@ -1,4 +1,4 @@
-## Phần 1: Hướng dẫn cài đặt và chạy dự án (Local)
+## Phần 1: Hướng dẫn cài đặt và chạy dự án
 
 ### Yêu cầu hệ thống:
 * Node.js (phiên bản >= 22.x)
@@ -12,11 +12,11 @@ DB_USER=mysql_user
 DB_PASSWORD=mysql_password
 DB_NAME=mysql_database
 DB_PORT=mysql_port
-GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=gemini_api_key
 ```
 ### Các bước khởi chạy dự án:
 1. **Cài đặt thư viện:**
-Mở 2 terminal song song tại thư mục gốc của project để chạy cài đặt.
+Mở 2 terminal song song tại thư mục gốc chứa project để chạy cài đặt.
 - **Terminal 1** (Backend):
   ```bash
   cd backend
@@ -42,10 +42,8 @@ Mở 2 terminal song song tại thư mục gốc của project để chạy cài
 
 3. Truy cập: http://localhost:5173
 
-## Phần 2: Môi trường Production
+## Phần 2: Test Production
 
-Ứng dụng hiện đã được deploy và có thể trải nghiệm trực tiếp thông qua đường dẫn sau:
+🔗 **Link Demo Production:** https://prod--template--yg5vlr47gxgt.code.run
 
-🔗 **Link Production:** https://prod--template--yg5vlr47gxgt.code.run
-
-> **Lưu ý:** Xin lưu ý cần có **GEMINI_API_KEY** tại file env backend.
+> **Lưu ý:** Cần có **GEMINI_API_KEY** đặt trong file .env backend( không có thì sẽ mock response).

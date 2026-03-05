@@ -36,7 +36,7 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 AppDataSource.initialize().then(async () => {
     const messageRepo = AppDataSource.getRepository(MessageEntity);
@@ -84,7 +84,7 @@ AppDataSource.initialize().then(async () => {
      *         description: Server error
      */
     app.post('/api/chat', async (req, res) => {
-        let { message, sessionId } = req.body;
+        let { message, sessionId, hasFiles } = req.body;
 
         if (!message) {
             return res.status(400).json({ error: 'Message is required' });
@@ -109,15 +109,27 @@ AppDataSource.initialize().then(async () => {
                 parts: [{ text: msg.content }]
             }));
 
-            const historyWithoutCurrent = formattedHistory.slice(0, -1);
-            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+            let responseText = "";
 
-            const chatSession = model.startChat({
-                history: historyWithoutCurrent,
-            });
+            if (hasFiles) {
+                // Mock response if there are files attached
+                responseText = "mock file";
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            } else if (genAI) {
+                const historyWithoutCurrent = formattedHistory.slice(0, -1);
+                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-            const result = await chatSession.sendMessage(message);
-            const responseText = result.response.text();
+                const chatSession = model.startChat({
+                    history: historyWithoutCurrent,
+                });
+
+                const result = await chatSession.sendMessage(message);
+                responseText = result.response.text();
+            } else {
+                // Mock response if API key is not configured
+                responseText = "This is a mock response from the AI since no GEMINI_API_KEY was configured.";
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
 
             const modelMsg = messageRepo.create({ sessionId, role: 'model', content: responseText });
             await messageRepo.save(modelMsg);
