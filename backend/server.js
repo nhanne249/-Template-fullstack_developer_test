@@ -19,9 +19,9 @@ const swaggerOptions = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'Chat API with Google Gemini',
+            title: 'API docs',
             version: '1.0.0',
-            description: 'Simple backend for contextual chat using Google Gemini AI and TypeORM',
+            description: 'Backend',
         },
         servers: [
             {
