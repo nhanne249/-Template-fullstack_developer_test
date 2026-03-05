@@ -112,7 +112,6 @@ AppDataSource.initialize().then(async () => {
             let responseText = "";
 
             if (hasFiles) {
-                // Mock response if there are files attached
                 responseText = "mock file";
                 await new Promise(resolve => setTimeout(resolve, 1000));
             } else if (genAI) {
